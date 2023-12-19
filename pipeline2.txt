@@ -54,20 +54,20 @@ pipeline{
                 script{
                    withDockerRegistry(credentialsId: 'docker', toolName: 'docker'){   
                        sh "docker build --build-arg TMDB_V3_API_KEY=d0aeed8abc5c4f5a4549fab762fbc712 -t netflix ."
-                       sh "docker tag netflix devopsguimaraes/netflix:latest "
-                       sh "docker push devopsguimaraes/netflix:latest "
+                       sh "docker tag netflix devopsguimaraes/netflix:v1 "
+                       sh "docker push devopsguimaraes/netflix:v1 "
                     }
                 }
             }
         }
         stage("TRIVY"){
             steps{
-                sh "trivy image devopsguimaraes/netflix:latest > trivyimage.txt" 
+                sh "trivy image devopsguimaraes/netflix:v1 > trivyimage.txt" 
             }
         }
         stage('Deploy to container'){
             steps{
-                sh 'docker run -d --name netflix -p 8081:80 devopsguimaraes/netflix:latest'
+                sh 'docker run -d --name netflix -p 8081:80 devopsguimaraes/netflix:v1'
             }
         }
         stage('Deploy to kubernets'){
