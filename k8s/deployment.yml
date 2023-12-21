@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: netflix-app
-          image: devopsguimaraes/netflix:latest:{{tag}}
+          image: devopsguimaraes/netflix:latest
           ports:
             - containerPort: 8080
 ---
