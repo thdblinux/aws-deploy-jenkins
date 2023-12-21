@@ -72,13 +72,9 @@ pipeline {
         }
         stage('Deploy to Kubernetes') {
             steps {
-                script {
-                    dir('Kubernetes') {
-                        withAWS(credentials: 'jenkins-credential', region: 'us-east-1') {
-                            sh 'aws eks update-kubeconfig --name Netflix'
-                            sh 'kubectl apply -f ./k8s/deployment.yaml'
-                        }
-                    }
+                withAWS(credentials: 'jenkins-credential', region: 'us-east-1') {
+                    sh 'aws eks update-kubeconfig --name Netflix'
+                    sh 'kubectl apply -f ./k8s/deployment.yaml'
                 }
             }
         }
