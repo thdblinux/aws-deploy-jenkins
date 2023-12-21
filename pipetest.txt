@@ -1,58 +1,53 @@
 pipeline {
     agent any
-    tools {
-        jdk 'jdk17'
-        nodejs 'node16'
-    }
+    
     environment {
-        SCANNER_HOME = tool 'sonar-scanner'
+        SCANNER_HOME= tool 'sonar-scanner'
     }
+    
     stages {
-        stage('clean workspace') {
+        stage('Preparation') {
             steps {
                 cleanWs()
-            }
-        }
-        stage('Checkout from Git') {
-            steps {
                 git branch: 'main', url: 'https://github.com/thadeuguimaraes/netflix-clone-react-typescript.git'
             }
         }
-        stage("Sonarqube Analysis ") {
+        
+        stage("Static Code Analysis") {
             steps {
                 withSonarQubeEnv('sonar-server') {
-                    sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Netflix \
+                    sh ''' sonar-scanner -Dsonar.projectName=Netflix \
                     -Dsonar.projectKey=Netflix '''
                 }
             }
         }
-        stage("quality gate") {
+        
+        stage("Quality Gate") {
             steps {
                 script {
-                    waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token'
+                    waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token' 
                 }
             }
         }
-        stage('Install Dependencies') {
-            steps {
-                sh "npm install"
-            }
-        }
+        
         stage('OWASP FS SCAN') {
             steps {
                 dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
                 dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
+        
         stage('TRIVY FS SCAN') {
             steps {
                 sh "trivy fs . > trivyfs.txt"
+                sh "trivy image devopsguimaraes/netflix:latest > trivyimage.txt" 
             }
         }
-        stage("Docker Build & Push") {
+        
+        stage("Build & Push Docker Image") {
             steps {
                 script {
-                    withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
+                    withDockerRegistry(credentialsId: 'docker', toolName: 'docker'){   
                         sh "docker build --build-arg TMDB_V3_API_KEY=d0aeed8abc5c4f5a4549fab762fbc712 -t netflix ."
                         sh "docker tag netflix devopsguimaraes/netflix:latest "
                         sh "docker push devopsguimaraes/netflix:latest "
@@ -60,30 +55,28 @@ pipeline {
                 }
             }
         }
-        stage("TRIVY") {
-            steps {
-                sh "trivy image devopsguimaraes/netflix:latest > trivyimage.txt"
-            }
-        }
-        stage('Deploy to container') {
+        
+        stage('Deploy') {
             steps {
                 sh 'docker run -d --name netflix -p 8081:80 devopsguimaraes/netflix:latest'
             }
         }
-        stage('Deploy no Kubernetes') {
-            environment {
-                tag_version = "${env.BUILD_ID}"
-            }
+        
+        stage('Deploy to Kubernetes') {
             steps {
-                withAWS(credentials: 'jenkins-credential', region: 'us-east-1') {
-                    sh 'aws eks update-kubeconfig --name live-eks'
-                    sh 'sed -i "s/{{tag}}/$tag_version/g" ./k8s/deployment.yaml'
-                    sh 'kubectl apply -f ./k8s/deployment.yaml'
+                script {
+                    dir('Kubernetes') {
+                        withAWS(credentials: 'jenkins-credential', region: 'us-east-1') {
+                            sh 'aws eks update-kubeconfig --name Netflix --region us-east-1'
+                            sh 'kubectl apply -f deployment.yml'
+                            sh 'kubectl apply -f service.yml'
+                        }   
+                    }
                 }
             }
         }
     }
-
+    
     post {
         always {
             emailext attachLog: true,
