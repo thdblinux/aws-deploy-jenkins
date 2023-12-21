@@ -23,14 +23,14 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: netflix-app
+  name: netflix-app-service
   labels:
     app: netflix-app
 spec:
   type: NodePort
   ports:
     - port: 80
-      targetPort: 80
+      targetPort: 8080
       nodePort: 30007
   selector:
     app: netflix-app
