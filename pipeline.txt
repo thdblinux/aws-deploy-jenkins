@@ -1,37 +1,36 @@
-pipeline{
+pipeline {
     agent any
-    tools{
+    tools {
         jdk 'jdk17'
         nodejs 'node16'
     }
     environment {
-        SCANNER_HOME=tool 'sonar-scanner'
+        SCANNER_HOME = tool 'sonar-scanner'
     }
     stages {
-        stage('clean workspace'){
-            steps{
+        stage('clean workspace') {
+            steps {
                 cleanWs()
             }
         }
-        stage('Checkout from Git'){
-            steps{
+        stage('Checkout from Git') {
+            steps {
                 git branch: 'main', url: 'https://github.com/thadeuguimaraes/netflix-clone-react-typescript.git'
             }
         }
-        stage("Sonarqube Analysis "){
-            steps{
+        stage("Sonarqube Analysis ") {
+            steps {
                 withSonarQubeEnv('sonar-server') {
-                    sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Netflix \
-                    -Dsonar.projectKey=Netflix '''
+                    sh "$SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Netflix -Dsonar.projectKey=Netflix"
                 }
             }
         }
-        stage("quality gate"){
-           steps {
+        stage("quality gate") {
+            steps {
                 script {
-                    waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token' 
+                    waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token'
                 }
-            } 
+            }
         }
         stage('Install Dependencies') {
             steps {
@@ -49,45 +48,45 @@ pipeline{
                 sh "trivy fs . > trivyfs.txt"
             }
         }
-        stage("Docker Build & Push"){
-            steps{
-                script{
-                   withDockerRegistry(credentialsId: 'docker', toolName: 'docker'){   
-                       sh "docker build --build-arg TMDB_V3_API_KEY=d0aeed8abc5c4f5a4549fab762fbc712 -t netflix ."
-                       sh "docker tag netflix devopsguimaraes/netflix:latest "
-                       sh "docker push devopsguimaraes/netflix:latest "
+        stage("Docker Build & Push") {
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
+                        sh "docker build --build-arg TMDB_V3_API_KEY=d0aeed8abc5c4f5a4549fab762fbc712 -t netflix ."
+                        sh "docker tag netflix devopsguimaraes/netflix:latest "
+                        sh "docker push devopsguimaraes/netflix:latest "
                     }
                 }
             }
         }
-        stage("TRIVY"){
-            steps{
-                sh "trivy image devopsguimaraes/netflix:latest > trivyimage.txt" 
+        stage("TRIVY") {
+            steps {
+                sh "trivy image devopsguimaraes/netflix:latest > trivyimage.txt"
             }
         }
-        stage('Deploy to container'){
-            steps{
+        stage('Deploy to container') {
+            steps {
                 sh 'docker run -d -p 8081:80 devopsguimaraes/netflix:latest'
             }
         }
-        stage('Deploy to kubernets'){
-            steps{
+        stage('Deploy to kubernetes') {
+            steps {
                 withKubeConfig([credentialsId: 'k8s']) {
-                        sh 'kubectl apply -f ./Kubernetes/deployment.yaml'
-                        sh 'kubectl apply -f ./Kubernetes/service.yaml'
-                    }
+                    sh 'kubectl apply -f ./Kubernetes/deployment.yaml'
+                    sh 'kubectl apply -f ./Kubernetes/service.yaml'
                 }
             }
         }
-
+    }
     post {
-     always {
-        emailext attachLog: true,
-            subject: "'${currentBuild.result}'",
-            body: "Project: ${env.JOB_NAME}<br/>" +
-                "Build Number: ${env.BUILD_NUMBER}<br/>" +
-                "URL: ${env.BUILD_URL}<br/>",
-            to: 'marciothadeu1984@gmail.com',
-            attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
+        always {
+            emailext attachLog: true,
+                subject: "'${currentBuild.result}'",
+                body: "Project: ${env.JOB_NAME}<br/>" +
+                      "Build Number: ${env.BUILD_NUMBER}<br/>" +
+                      "URL: ${env.BUILD_URL}<br/>",
+                to: 'marciothadeu1984@gmail.com',
+                attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
         }
     }
+}
