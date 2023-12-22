@@ -69,9 +69,9 @@ pipeline {
                 sh 'docker run -d -p 8081:80 devopsguimaraes/netflix:latest'
             }
         }
-        stage('Deploy to kubernetes') {
+       stage('Deploy to Kubernetes') {
             steps {
-                withAWS(credentialsId: 'k8s', region: 'us-east-1') {
+                withCredentials([awsEks(credentialsId: 'k8s', region: 'us-east-1')]) {
                     sh 'aws eks update-kubeconfig --name Netflix'
                     sh 'kubectl apply -f ./Kubernetes/deployment.yaml'
                     sh 'kubectl apply -f ./Kubernetes/service.yaml'
