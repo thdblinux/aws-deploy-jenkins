@@ -70,7 +70,7 @@ pipeline{
                 sh 'docker run -d -p 8081:80 devopsguimaraes/netflix:latest'
             }
         }
-        stage('Deploy to kubernetes'){
+        stage('Deploy to kubernets'){
             steps{
                 script{
                     dir('Kubernetes') {
