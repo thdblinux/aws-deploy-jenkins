@@ -18,20 +18,20 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/thadeuguimaraes/netflix-clone-react-typescript.git'
             }
         }
-        stage("Sonarqube Analysis ") {
+        stage("Sonarqube Analysis") {
             steps {
                 withSonarQubeEnv('sonar-server') {
-                    sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Netflix \
-                    -Dsonar.projectKey=Netflix '''
+                    sh '''$SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Netflix \
+                    -Dsonar.projectKey=Netflix'''
                 }
             }
         }
         stage("quality gate") {
             steps {
                 script {
-                    waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token' 
+                    waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token'
                 }
-            } 
+            }
         }
         stage('Install Dependencies') {
             steps {
@@ -52,7 +52,7 @@ pipeline {
         stage("Docker Build & Push") {
             steps {
                 script {
-                    withDockerRegistry(credentialsId: 'docker', toolName: 'docker'){   
+                    withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
                         sh "docker build --build-arg TMDB_V3_API_KEY=d0aeed8abc5c4f5a4549fab762fbc712 -t netflix ."
                         sh "docker tag netflix thsre/netflix:latest "
                         sh "docker push thsre/netflix:latest "
@@ -62,7 +62,7 @@ pipeline {
         }
         stage("TRIVY") {
             steps {
-                sh "trivy image thsre/netflix:latest > trivyimage.txt" 
+                sh "trivy image thsre/netflix:latest > trivyimage.txt"
             }
         }
         stage('Deploy to container') {
@@ -71,27 +71,26 @@ pipeline {
             }
         }
         stage('Deploy to kubernets') {
-           steps{
-                script{
-                        withAWS(credentials: 'k8s', region 'us-east-1') {
-                                sh 'aws eks update-kubeconfig --name Netflix'
-                                sh 'kubectl apply -f ./Kubernetes/deployment.yml'
-                                sh 'kubectl apply -f ./Kubernetes/service.yml'
-                        }   
+            steps {
+                script {
+                    withAWS(credentials: 'k8s', region: 'us-east-1') {
+                        sh 'aws eks update-kubeconfig --name Netflix'
+                        sh 'kubectl apply -f ./Kubernetes/deployment.yml'
+                        sh 'kubectl apply -f ./Kubernetes/service.yml'
                     }
                 }
             }
         }
-
     }
     post {
-     always {
-        emailext attachLog: true,
-            subject: "'${currentBuild.result}'",
-            body: "Project: ${env.JOB_NAME}<br/>" +
-                "Build Number: ${env.BUILD_NUMBER}<br/>" +
-                "URL: ${env.BUILD_URL}<br/>",
-            to: 'marciothadeu1984@gmail.com',                                
-            attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
+        always {
+            emailext attachLog: true,
+                subject: "'${currentBuild.result}'",
+                body: "Project: ${env.JOB_NAME}<br/>" +
+                    "Build Number: ${env.BUILD_NUMBER}<br/>" +
+                    "URL: ${env.BUILD_URL}<br/>",
+                to: 'marciothadeu1984@gmail.com',
+                attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
         }
     }
+}
