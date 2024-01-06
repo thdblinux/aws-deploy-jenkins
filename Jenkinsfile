@@ -7,7 +7,6 @@ pipeline {
     environment {
         SCANNER_HOME = tool 'sonar-scanner'
     }
-
     stages {
         stage('clean workspace') {
             steps {
@@ -19,7 +18,6 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/thadeuguimaraes/netflix-clone-react-typescript.git'
             }
         }
-
         stage("Sonarqube Analysis") {
             steps {
                 withSonarQubeEnv('sonar-server') {
@@ -28,7 +26,6 @@ pipeline {
                 }
             }
         }
-
         stage("quality gate") {
             steps {
                 script {
@@ -36,26 +33,22 @@ pipeline {
                 }
             }
         }
-
         stage('Install Dependencies') {
             steps {
                 sh "npm install"
             }
         }
-
         stage('OWASP FS SCAN') {
             steps {
                 dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
                 dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
-
         stage('TRIVY FS SCAN') {
             steps {
                 sh "trivy fs . > trivyfs.txt"
             }
         }
-
         stage("Docker Build & Push") {
             steps {
                 script {
@@ -67,30 +60,30 @@ pipeline {
                 }
             }
         }
-
         stage("TRIVY") {
             steps {
                 sh "trivy image thsre/netflix:latest > trivyimage.txt"
             }
         }
-
         stage('Deploy to container') {
             steps {
                 sh 'docker run -d -p 8081:80 thsre/netflix:latest'
             }
         }
-
-        stage('Deploy to kubernets') {
-            steps {
-                    withAWS(credentials: 'k8s', region: 'us-east-1') {
-                        sh 'aws eks update-kubeconfig --name Netflix'
-                        sh 'kubectl apply -f ./Kubernetes/deployment.yml'
-                        sh 'kubectl apply -f ./Kubernetes/service.yml'
+        stage('Deploy to kubernets'){
+            steps{
+                script{
+                    dir('Kubernetes') {
+                        withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'k8s', namespace: '', restrictKubeConfigAccess: false, serverUrl: '') {
+                                sh 'kubectl apply -f deployment.yml'
+                                sh 'kubectl apply -f service.yml'
+                        }   
                     }
                 }
             }
         }
 
+    }
     post {
         always {
             emailext attachLog: true,
