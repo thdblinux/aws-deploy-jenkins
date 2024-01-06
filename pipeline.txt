@@ -73,11 +73,10 @@ pipeline {
         stage('Deploy to kubernets') {
            steps{
                 script{
-                    dir('Kubernetes') {
-                        withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'k8s', namespace: '', restrictKubeConfigAccess: false, serverUrl: '') {
-                                sh 'kubectl apply -f deployment.yml'
-                                sh 'kubectl apply -f service.yml'
-                                echo "Service URL: http://${externalIP}/"
+                        withAWS(credentials: 'k8s', region 'us-east-1') {
+                                sh 'aws eks update-kubeconfig --name Netflix'
+                                sh 'kubectl apply -f ./Kubernetes/deployment.yml'
+                                sh 'kubectl apply -f ./Kubernetes/service.yml'
                         }   
                     }
                 }
@@ -96,4 +95,3 @@ pipeline {
             attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
         }
     }
-}
