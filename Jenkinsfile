@@ -70,18 +70,18 @@ pipeline {
                 sh 'docker run -d -p 8081:80 thsre/netflix:latest'
             }
         }
-        stage('Deploy to kubernets') {
-            steps {
-                script {
-                    withAWS(credentials: 'k8s', region: 'us-east-1') {
-                        sh 'aws eks update-kubeconfig --name Netflix'
-                        sh 'kubectl apply -f ./Kubernetes/deployment.yml'
-                        sh 'kubectl apply -f ./Kubernetes/service.yml'
-                    }
-                }
-            }
-        }
-    }
+    //     stage('Deploy to kubernets') {
+    //         steps {
+    //             script {
+    //                 withAWS(credentials: 'k8s', region: 'us-east-1') {
+    //                     sh 'aws eks update-kubeconfig --name Netflix'
+    //                     sh 'kubectl apply -f ./Kubernetes/deployment.yml'
+    //                     sh 'kubectl apply -f ./Kubernetes/service.yml'
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
     post {
         always {
             emailext attachLog: true,
