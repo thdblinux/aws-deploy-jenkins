@@ -15,7 +15,7 @@ pipeline {
         }
         stage('Checkout from Git') {
             steps {
-                git branch: 'main', url: 'https://github.com/thadeuguimaraes/netflix-clone-react-typescript.git'
+                git branch: 'main', url: ''
             }
         }
         stage("Sonarqube Analysis") {
@@ -54,20 +54,20 @@ pipeline {
                 script {
                     withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
                         sh "docker build --build-arg TMDB_V3_API_KEY=d0aeed8abc5c4f5a4549fab762fbc712 -t netflix ."
-                        sh "docker tag netflix thsre/netflix:latest "
-                        sh "docker push thsre/netflix:latest "
+                        sh "docker tag netflix thsre/netflix:v1.1 "
+                        sh "docker push thsre/netflix:v1.1 "
                     }
                 }
             }
         }
         stage("TRIVY") {
             steps {
-                sh "trivy image thsre/netflix:latest > trivyimage.txt"
+                sh "trivy image thsre/netflix:v1.1 > trivyimage.txt"
             }
         }
         stage('Deploy to container') {
             steps {
-                sh 'docker run -d -p 8081:80 thsre/netflix:latest'
+                sh 'docker run -d -p 8081:80 thsre/netflix:v1.1'
             }
         }
         stage('Deploy to kubernets'){
