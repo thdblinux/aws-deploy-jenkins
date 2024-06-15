@@ -50,7 +50,7 @@ sudo chmod 777 /var/run/docker.sock
 
 ```sh
 docker build -t netflix .
-docker run -d --name netflix -p 8081:80 netflix:latest
+docker run -d --name netflix -p 8081:80 netflix:<TAG>
 
 # delete
 docker stop <containerid>
@@ -176,7 +176,7 @@ pipeline {
         }
         stage('Checkout from Git') {
             steps {
-                git branch: 'main', url: 'https://github.com/thadeuguimaraes/netflix-clone-react-typescript.git'
+                git branch: 'main', url: 'https://github.com/thdevopssre/aws-deploy-jenkins.git'
             }
         }
         stage("Sonarqube Analysis") {
@@ -263,7 +263,7 @@ pipeline{
         }
         stage('Checkout from Git'){
             steps{
-                git branch: 'main', url: 'https://github.com/thadeuguimaraes/netflix-clone-react-typescript.git'
+                git branch: 'main', url: 'https://github.com/thdevopssre/aws-deploy-jenkins.git'
             }
         }
         stage("Sonarqube Analysis "){
@@ -302,20 +302,20 @@ pipeline{
                 script{
                    withDockerRegistry(credentialsId: 'docker', toolName: 'docker'){   
                        sh "docker build --build-arg TMDB_V3_API_KEY=<yourapikey> -t netflix ."
-                       sh "docker tag netflix thsre/netflix:latest "
-                       sh "docker push thsre/netflix:latest "
+                       sh "docker tag netflix thsre/netflix:<TAG> "
+                       sh "docker push thsre/netflix:<TAG> "
                     }
                 }
             }
         }
         stage("TRIVY"){
             steps{
-                sh "trivy image thsre/netflix:latest > trivyimage.txt" 
+                sh "trivy image thsre/netflix:<TAG> > trivyimage.txt" 
             }
         }
         stage('Deploy to container'){
             steps{
-                sh 'docker run -d --name netflix -p 8081:80 thsre/netflix:latest'
+                sh 'docker run -d --name netflix -p 8081:80 thsre/netflix:<TAG>'
             }
         }
     }
