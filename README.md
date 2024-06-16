@@ -783,6 +783,7 @@ Para acessar o aplicativo, certifique-se de que a porta `30007` esteja aberta em
 
 ## Links úteis para a documentação das tecnologias utilizadas no projeto:
 - [AWS](https://aws.amazon.com/)
+- [Kubernetes](https://kubernetes.io/pt-br/)
 - [Docker Builder Reference](https://docs.docker.com/engine/reference/builder/)
 - [Postgres](https://www.postgresql.org/)
 - [Acqua Security Tryvi](https://aquasecurity.github.io/trivy/v0.49/)
