@@ -1,6 +1,4 @@
-<div align="center">
-  <img src="./public/assets/DevSecOps.png" alt="DevSecOps Logo" width="100%" height="100%">
-</div>
+## Deploy Netflix Clone na AWS usando Terraform, Postgresql,Grafana, Prometheus, Helm, Sonarqube, Trivy, OWASP, Jenkins, Argocd+GitOps - DevSecOps!
 
 <div align="center">
   <a href="http://netflix-clone-with-tmdb-using-react-mui.vercel.app/">
@@ -8,31 +6,89 @@
   </a>
 </div>
 
-<br />
-
 <div align="center">
-  <img src="./public/assets/netflix.png" alt="Home Page Logo" width="100%" height="100%">
+  <img src="./public/assets/saturn.png" alt="DevSecOps Logo" width="100%" height="100%">
 </div>
 
+
+<br />
+
+## Fase 1: Configuração Inicial, Implantação e Deploy do Terraform para criar as instâncias e o cluster EKS na AWS
+
 ```sh
+cd terraform
 ```
-## Deploy Netflix Clone na AWS usando Jenkins - Projeto DevSecOps!
 
-## Fase 1: Configuração Inicial e Implantação
-### Etapa 1: Inicie o EC2 (Ubuntu 22.04):
+```sh
+terraform init
+```
 
-- Provisione uma instância EC2 na AWS com Ubuntu 22.04.
-- Conecte-se à instância usando SSH.
-  
-### Etapa 2: clonar o código:
+```sh
+terraform plan
+```
+
+```sh
+terraform apply
+```
+
+"OBS: Assim que todo o projeto for finalizado, você pode rodar o comando `terraform destroy` para destruir toda a infraestrutura provisionada na AWS."
+
+```sh
+terraform destroy
+```
+###  Etapa 1: Crie um Bucket S3 através da console da AWS para armazenar o arquivo terraform.tfstate
+
+<div align="center">
+  <img src="./public/assets/s3.png" alt="Home Page Logo" width="100%" height="100%">
+</div>
+
+
+### Etapa 2: Acesse as VM EC2
+
+- Conecte-se à instância usando o acesso SSH.
+- Faça atualização dos packages
+
+## EC2 Instances
+<div align="center">
+  <img src="./public/assets/ec2-all.png" alt="Home Page Logo" width="100%" height="100%">
+</div>
+
+## VPC Network
+<div align="center">
+  <img src="./public/assets/vpc-eks.png" alt="Home Page Logo" width="100%" height="100%">
+</div>
+
+## DB-Postgresql
+"OBS: O banco de dados (relacional) PostgreSQL foi provisionado via Terraform em uma instância EC2, que está configurada em uma sub-rede privada usando um NAT Gateway. Dessa forma, garantimos que não haverá nenhum tipo de acesso externo, assegurando a segurança dos nossos dados."
+
+### Etapa 3: clonar o código:
 
 - Atualize todos os pacotes e clone o código.
 
 - Clone o repositório de código do seu aplicativo na instância do EC2:
 
 ```sh
-https://github.com/thadeuguimaraes/netflix-clone-react-typescript.git
+https://github.com/thdevopssre/aws-deploy-jenkins
 ```
+
+## Step 3: Kubernetes
+
+### Acesse o Cluster EKS 
+Nesta fase, iremos acessar o cluster Kubernetes com 2 grupos de nós via terminal. Isso fornecerá uma melhor interação com o cluster em um ambiente escalável para implantar e gerenciar seus aplicativos.
+
+```sh
+aws eks update-kubeconfig --region <> --name <cluster_name>
+```
+
+<div align="center">
+  <img src="./public/assets/eks-aws.png" alt="DevSecOps Logo" width="100%" height="100%">
+</div>
+
+## Nodegroup
+<div align="center">
+  <img src="./public/assets/node-aws.png" alt="DevSecOps Logo" width="100%" height="100%">
+</div>
+
 
 ### Etapa 3: instale o Docker e execute o aplicativo usando um contêiner:
 
@@ -72,19 +128,32 @@ Agora recrie a imagem do Docker com sua chave de API:
 ```sh
 docker build --build-arg TMDB_V3_API_KEY=<your-api-key> -t netflix .
 ```
+<div align="center">
+  <img src="./public/assets/docker-image.png" alt="Home Page Logo" width="100%" height="100%">
+</div>
+
 ## Fase 2: Segurança
 
 1.Instale SonarQube e Trivy:
 
 - Instale SonarQube e Trivy na instância EC2 para verificar vulnerabilidades.
 
+
+2.Integre SonarQube e configure:
+
+- Integre o SonarQube a sua pipeline de CI/CD.
+- Configure o SonarQube para analisar o código em busca de problemas de qualidade e segurança.
 sonarqube
 ```sh
 docker run -d --name sonar -p 9000:9000 sonarqube:lts-community
 ```
+publicIP:9000 (por padrão, nome de usuário e senha são admin)
+
+<div align="center">
+  <img src="./public/assets/sonarqube.png" alt="Home Page Logo" width="100%" height="100%">
+</div>
 Acessar:
 
-publicIP:9000 (por padrão, nome de usuário e senha são admin)
 
 Para instalar o Trivy:
 ```sh
@@ -98,12 +167,9 @@ para fazer o escaner da imagem usando trivy
 ```sh
 trivy image <imageid>
 ```
-
-2.Integre SonarQube e configure:
-
-- Integre o SonarQube a sua pipeline de CI/CD.
-- Configure o SonarQube para analisar o código em busca de problemas de qualidade e segurança.
-
+<div align="center">
+  <img src="./public/assets/dp-check.png" alt="Home Page Logo" width="100%" height="100%">
+</div>
 ## Fase 3: CI/CD Setup
 
 1. Instale o Jenkins para automação:
@@ -327,6 +393,14 @@ sudo su
 sudo usermod -aG docker jenkins
 sudo systemctl restart jenkins
 ```
+## Outputs + Stage View
+<div align="center">
+  <img src="./public/assets/jenkins-pipe.png" alt="DevSecOps Logo" width="100%" height="100%">
+</div>
+
+<div align="center">
+  <img src="./public/assets/output-pipe.png" alt="DevSecOps Logo" width="100%" height="100%">
+</div>
 
 ## Fase 4: Monitoramento
 
@@ -504,6 +578,10 @@ Você pode acessar os targets do Prometheus em:
 
 `http://<your-prometheus-ip>:9090/targets`
 
+## Metrcis Jenkins and Node Exporte EKS
+<div align="center">
+  <img src="./public/assets/prometheus.png" alt="DevSecOps Logo" width="100%" height="100%">
+</div>
 ### Grafana
 
 Instale o Grafana no Ubuntu 22.04 e configure-o para funcionar com o Prometheus
@@ -597,6 +675,16 @@ Grafana é uma ferramenta poderosa para criar visualizações e Dashboards e voc
 
 É isso! Você instalou e configurou o Grafana com êxito para trabalhar com o Prometheus para monitoramento e visualização.
 
+## Jenkins metrics
+<div align="center">
+  <img src="./public/assets/jenkins_grafana.png" alt="DevSecOps Logo" width="100%" height="100%">
+</div>
+
+## Cluster EKS metrcis
+<div align="center">
+  <img src="./public/assets/node_exporter.png" alt="DevSecOps Logo" width="100%" height="100%">
+</div>
+
 **2.Configure a integração do plug-in Prometheus:**
 - Integre Jenkins ao Prometheus para monitorar o pipeline de CI/CD.
 **Step 5: Notificação**
@@ -604,10 +692,6 @@ Grafana é uma ferramenta poderosa para criar visualizações e Dashboards e voc
 1.Implementar serviços de notificação:
   - Configure notificações por email no Jenkins ou outros mecanismos de notificação.
 
-## Step 6: Kubernetes
-
-### Crie um cluster Kubernetes com Nodegroups
-Nesta fase, você configurará um cluster Kubernetes com grupos de nós. Isso fornecerá um ambiente escalável para implantar e gerenciar seus aplicativos.
 
 ## Monitore o Kubernetes com Prometheus
 
@@ -686,6 +770,38 @@ Depois de instalar o ArgoCD, você precisa configurar seu repositório GitHub co
 - `source`: defina a origem do seu aplicativo, incluindo a URL do repositório GitHub, a revisão e o caminho para o aplicativo dentro do repositório.
 - `syncPolicy`: Configure a política de sincronização, incluindo sincronização automática, remoção e autocorreção.
 
+<div align="center">
+  <img src="./public/assets/argoaws.png" alt="Home Page Logo" width="100%" height="100%">
+</div>
+
 **7.Acesse seu aplicativo**
 
 Para acessar o aplicativo, certifique-se de que a porta `30007` esteja aberta em seu grupo de segurança e, em seguida, abra uma nova aba e cole seu` NodeIP:30007`, seu aplicativo deve estar em execução. 
+<div align="center">
+  <img src="./public/assets/netflix-web.png" alt="Home Page Logo" width="100%" height="100%">
+</div>
+
+## Links úteis para a documentação das tecnologias utilizadas no projeto:
+- [AWS](https://aws.amazon.com/)
+- [Docker Builder Reference](https://docs.docker.com/engine/reference/builder/)
+- [Postgres](https://www.postgresql.org/)
+- [Acqua Security Tryvi](https://aquasecurity.github.io/trivy/v0.49/)
+- [OAWSP](https://owasp.org/site-documentation/)
+- [Sonarqube](https://www.sonarsource.com/products/sonarqube/)
+- [Helm Docs](https://helm.sh/docs/intro/install/)
+- [Terraform AWS Provider Workspace Resource](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/workspaces_workspace)
+- [Terraform AWS Getting Started](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/aws-variables)
+- [Terraform AWS Resource Tagging Guide](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/resource-tagging)
+- [Terraform AWS VPC Module](https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/2.15.0)
+- [Terraform AWS EKS Module](https://registry.terraform.io/modules/terraform-aws-modules/eks/aws/latest)
+- [Terraform AWS S3 Bucket Module](https://registry.terraform.io/modules/terraform-aws-modules/s3-bucket/aws/latest)
+- [Terraform Configuration Language Guide](https://developer.hashicorp.com/terraform/tutorials/configuration-language/variables)
+- [Terraform Language Values and Variables](https://developer.hashicorp.com/terraform/language/values/variables)
+- [Kubernetes Nginx Ingress Configuration](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/)
+- [Prometheus](https://prometheus.io/)
+- [Grafana](https://grafana.com/)
+- [ArgoCD Documentation](https://argo-cd.readthedocs.io/en/stable/)
+- [Jenkins CI/CD](https://www.jenkins.io/)
+- [PostgreSQL Commands and Language](https://halleyoliv.gitlab.io/pgdocptbr/dml-insert.html)
+- [Amazon S3 modules](https://registry.terraform.io/modules/terraform-aws-modules/s3-bucket/aws/latest)
+- [AWS update kubeconfig](https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html)
