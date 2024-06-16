@@ -10,8 +10,13 @@
   <img src="./public/assets/saturn.png" alt="DevSecOps Logo" width="100%" height="100%">
 </div>
 
-
 <br />
+
+### Crie um Bucket S3 através da console da AWS para armazenar o arquivo terraform.tfstate
+
+<div align="center">
+  <img src="./public/assets/s3.png" alt="Home Page Logo" width="100%" height="100%">
+</div>
 
 ## Fase 1: Configuração Inicial, Implantação e Deploy do Terraform para criar as instâncias e o cluster EKS na AWS
 
@@ -36,12 +41,6 @@ terraform apply
 ```sh
 terraform destroy
 ```
-###  Etapa 1: Crie um Bucket S3 através da console da AWS para armazenar o arquivo terraform.tfstate
-
-<div align="center">
-  <img src="./public/assets/s3.png" alt="Home Page Logo" width="100%" height="100%">
-</div>
-
 
 ### Etapa 2: Acesse as VM EC2
 
