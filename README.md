@@ -1,4 +1,4 @@
-## Deploy Netflix Clone na AWS usando Terraform, Postgresql,Grafana, Prometheus, Helm, Sonarqube, Trivy, OWASP, Jenkins, Argocd+GitOps - DevSecOps!
+## Deploy Netflix Clone na AWS usando EKS, Terraform, Postgresql,Grafana, Prometheus, Helm, Sonarqube, Trivy, OWASP, Jenkins, Argocd+GitOps - DevSecOps!
 
 <div align="center">
   <a href="http://netflix-clone-with-tmdb-using-react-mui.vercel.app/">
